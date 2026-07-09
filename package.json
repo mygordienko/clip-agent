@@ -1,0 +1,32 @@
+{
+  "name": "clip-agent",
+  "version": "0.0.1",
+  "description": "Handy tool to share and alter clipboard data",
+  "keywords": [
+    "clipboard",
+    "share",
+    "agent"
+  ],
+  "homepage": "https://github.com/mygordienko/clip-agent#readme",
+  "bugs": {
+    "url": "https://github.com/mygordienko/clip-agent/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mygordienko/clip-agent.git"
+  },
+  "license": "MIT",
+  "author": "Mikhail Gordienko",
+  "type": "commonjs",
+  "main": "main.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "start": "electron . --no-sandbox --ozone-platform=x11",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "electron": "^43.1.0"
+  }
+}
