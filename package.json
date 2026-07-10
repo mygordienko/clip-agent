@@ -28,5 +28,8 @@
   },
   "devDependencies": {
     "electron": "^43.1.0"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
   }
 }
