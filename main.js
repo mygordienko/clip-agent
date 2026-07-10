@@ -2,6 +2,9 @@ const { shell, nativeImage } = require('electron/common')
 const { app, dialog, Menu, MenuItem, BrowserWindow, ipcMain, nativeTheme, clipboard } = require('electron/main')
 const path = require('node:path')
 
+/* This variable is needed for the window-less (try-only) mode to be implemented later */
+let clipboardText = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since 1966, when designers at Letraset and James Mosley, the librarian at St Bride Printing Library in London, took a 1914 Cicero translation and scrambled it to make dummy text for Letraset's Body Type sheets. It has survived not only many decades, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised thanks to these sheets and more recently with desktop publishing software like Aldus PageMaker and Microsoft Word including versions of Lorem Ipsum."
+
 const template = [
   {
     label: 'File',
@@ -47,12 +50,14 @@ const createWindow = () => {
 
 // Handle clipboard write text requests
 ipcMain.handle('clipboard:writeText', (event, text) => {
-  clipboard.writeText(text);
+  clipboardText = text
+  clipboard.writeText(clipboardText)
 });
 
 // Handle clipboard read text requests
 ipcMain.handle('clipboard:readText', (event) => {
-  return clipboard.readText();
+  clipboardText = clipboard.readText()
+  return clipboardText
 });
 
 nativeTheme.themeSource = 'system'
