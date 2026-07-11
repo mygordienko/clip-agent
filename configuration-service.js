@@ -6,7 +6,8 @@ const DEFAULT_CONFIG_PATH = "config.json"
 const DEFAULT_CONFIG = {
   version: 1,
   enableClipboardServer: true,
-  clipboardServerPort: 56001
+  clipboardServerPort: 56001,
+  remoteBaseUrl: 'http://192.168.2.216:8080'
 }
 
 // Get the absolute path to userData directory

@@ -1,4 +1,41 @@
 const express = require('express');
+const { net } = require('electron');
+
+class ClipboardClient {
+  /**
+   * @param {string} baseUrl - The target 'http://host:port'
+   */
+  constructor(baseUrl = 'localhost:56001') {
+    const targetUrl = new URL(baseUrl)
+    targetUrl.pathname = '/api/v1/clipboard'
+    this.url = targetUrl;
+    console.log(`Client target; ${this.url }`)
+  }
+
+  async fetchRemoteClipboard(url, timeoutMs = 1000) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const response = await net.fetch(this.url, {
+        signal: controller.signal
+      });
+
+      if (response.ok || response.status === 204) {
+        return await response.text()
+      } else {
+        throw new Error(`Error pulling remote, status ${response.status}`);
+      }
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        throw new Error('Timeout pulling remote');
+      }
+    } finally {
+      clearTimeout(id)
+    }
+  }
+}
+
 
 class ClipboardServer {
   /**
@@ -40,9 +77,9 @@ class ClipboardServer {
         const textValue = this.getDataCallback();
 
         if (textValue) {
-          res.status(200).json({ value: textValue });
+          res.status(200).type('text').send(textValue)
         } else {
-          res.status(204).json({});
+          res.status(204).type('text').send()
         }
       } catch (error) {
         res.status(500).json({ error: error.message });
@@ -72,4 +109,4 @@ class ClipboardServer {
   }
 }
 
-module.exports = ClipboardServer;
+module.exports = { ClipboardServer, ClipboardClient };

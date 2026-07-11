@@ -1,7 +1,7 @@
 const { shell, nativeImage } = require('electron/common')
 const { app, dialog, Menu, MenuItem, BrowserWindow, ipcMain, nativeTheme, clipboard } = require('electron/main')
 const path = require('node:path')
-const ClipboardServer = require('./clipboard-server.js')
+const { ClipboardServer, ClipboardClient } = require('./clipboard-integration.js')
 const configurationService = require('./configuration-service.js')
 
 /* This variable is needed for the window-less (tray-only) mode to be implemented later */
@@ -9,6 +9,7 @@ let clipboardText = "Lorem Ipsum is simply dummy text of the printing and typese
 
 const configuration = configurationService.getConfig()
 const clipboardServer = new ClipboardServer(configuration.clipboardServerPort, () => refreshClipboardFromMain());
+const clipboardClient = new ClipboardClient(configuration.remoteBaseUrl);
 
 const template = [
   {
@@ -62,6 +63,20 @@ ipcMain.handle('clipboard:writeText', (event, text) => {
 // Handle clipboard read text requests from UI
 ipcMain.handle('clipboard:readText', (event) => {
   clipboardText = clipboard.readText()
+  return clipboardText
+});
+
+// Handle clipboard pull remote text requests from UI
+ipcMain.handle('clipboard:pullRemoteText', async (event) => {
+  try {
+    clipboardText = await clipboardClient.fetchRemoteClipboard()
+    clipboardText = clipboardText ? clipboardText : ''
+    clipboard.writeText(clipboardText)
+  } catch(error) {
+    // TODO: do not update local cache, show notification
+    console.error(`Error pulling remote: ${error.message}`)
+  }
+  
   return clipboardText
 });
 
