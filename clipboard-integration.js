@@ -30,7 +30,7 @@ class ClipboardClient {
       if (error.name === 'AbortError') {
         throw new Error('Timeout pulling remote')
       }
-      
+
       throw error
     } finally {
       clearTimeout(id)
@@ -38,11 +38,11 @@ class ClipboardClient {
   }
 }
 
-
 class ClipboardServer {
   /**
    * @param {number} port - The target network port
    * @param {Function} getDataCallback - A function that returns clipboard value
+   * TODO: implement proper state machine (started, shuttingdown, stopped)
    */
   constructor(port = 56001, getDataCallback) {
     this.port = port;
