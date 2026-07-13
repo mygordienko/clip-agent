@@ -28,8 +28,10 @@ class ClipboardClient {
       }
     } catch (error) {
       if (error.name === 'AbortError') {
-        throw new Error('Timeout pulling remote');
+        throw new Error('Timeout pulling remote')
       }
+      
+      throw error
     } finally {
       clearTimeout(id)
     }

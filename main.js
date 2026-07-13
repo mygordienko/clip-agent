@@ -1,5 +1,5 @@
 const { shell, nativeImage } = require('electron/common')
-const { app, dialog, Menu, MenuItem, BrowserWindow, ipcMain, nativeTheme, clipboard } = require('electron/main')
+const { app, dialog, Menu, MenuItem, BrowserWindow, ipcMain, nativeTheme, clipboard, Notification } = require('electron/main')
 const path = require('node:path')
 const { ClipboardServer, ClipboardClient } = require('./clipboard-integration.js')
 const configurationService = require('./configuration-service.js')
@@ -73,8 +73,16 @@ ipcMain.handle('clipboard:pullRemoteText', async (event) => {
     clipboardText = clipboardText ? clipboardText : ''
     clipboard.writeText(clipboardText)
   } catch(error) {
-    // TODO: do not update local cache, show notification
+    // Do not update local cache, show notification
     console.error(`Error pulling remote: ${error.message}`)
+    
+    // Show notification to user
+    const notification = new Notification({
+      title: 'Clipboard Pull Failed',
+      body: `Failed to pull clipboard from remote: ${error.message}`
+    });
+    
+    notification.show();
   }
   
   return clipboardText
