@@ -1,11 +1,14 @@
 const { shell, nativeImage } = require('electron/common')
-const { app, dialog, Menu, MenuItem, BrowserWindow, ipcMain, nativeTheme, clipboard, Notification } = require('electron/main')
+const { app, dialog, Menu, MenuItem, BrowserWindow, ipcMain, nativeTheme, clipboard, Notification, Tray } = require('electron/main')
 const path = require('node:path')
 const { ClipboardServer, ClipboardClient } = require('./clipboard-integration.js')
 const configurationService = require('./configuration-service.js')
 
 /* This variable is needed for the window-less (tray-only) mode to be implemented later */
 let clipboardText = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since 1966, when designers at Letraset and James Mosley, the librarian at St Bride Printing Library in London, took a 1914 Cicero translation and scrambled it to make dummy text for Letraset's Body Type sheets. It has survived not only many decades, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised thanks to these sheets and more recently with desktop publishing software like Aldus PageMaker and Microsoft Word including versions of Lorem Ipsum."
+
+let tray = null
+let mainWindow = null
 
 const configuration = configurationService.getConfig()
 const clipboardServer = new ClipboardServer(configuration.clipboardServerPort, () => refreshClipboardFromMain());
@@ -15,7 +18,15 @@ const template = [
   {
     label: 'File',
     submenu: [
-      { role: 'quit' }
+      {
+        label: 'Quit',
+        click: () => {
+          if (configuration.enableClipboardServer) {
+            clipboardServer.close()
+          }
+          app.quit()
+        }
+      }
     ]
   },
   {
@@ -41,7 +52,7 @@ const menu = Menu.buildFromTemplate(template)
 Menu.setApplicationMenu(menu)
 
 const createWindow = () => {
-  const win = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 800,
     height: 500,
     icon: path.join(__dirname, 'images', 'icon.png'),
@@ -51,23 +62,21 @@ const createWindow = () => {
     }
   })
 
-  win.loadFile('index.html')
+  mainWindow.loadFile('index.html')
 }
 
-// Handle clipboard write text requests from UI
-ipcMain.handle('clipboard:writeText', (event, text) => {
+// Reusable clipboard functions
+const writeTextToClipboard = (text) => {
   clipboardText = text
   clipboard.writeText(clipboardText)
-});
+}
 
-// Handle clipboard read text requests from UI
-ipcMain.handle('clipboard:readText', (event) => {
+const readTextFromClipboard = () => {
   clipboardText = clipboard.readText()
   return clipboardText
-});
+}
 
-// Handle clipboard pull remote text requests from UI
-ipcMain.handle('clipboard:pullRemoteText', async (event) => {
+const pullRemoteText = async () => {
   try {
     clipboardText = await clipboardClient.fetchRemoteClipboard()
     clipboardText = clipboardText ? clipboardText : ''
@@ -86,12 +95,77 @@ ipcMain.handle('clipboard:pullRemoteText', async (event) => {
   }
   
   return clipboardText
+}
+
+const clearClipboard = () => {
+  writeTextToClipboard('')
+}
+
+const showWindow = () => {
+  if (mainWindow === null) {
+    createWindow()
+  } else {
+    mainWindow.show()
+    mainWindow.focus()
+  }
+}
+
+// Handle clipboard write text requests from UI
+ipcMain.handle('clipboard:writeText', (event, text) => {
+  writeTextToClipboard(text)
+});
+
+// Handle clipboard read text requests from UI
+ipcMain.handle('clipboard:readText', (event) => {
+  return readTextFromClipboard()
+});
+
+// Handle clipboard pull remote text requests from UI
+ipcMain.handle('clipboard:pullRemoteText', async (event) => {
+  return await pullRemoteText()
 });
 
 // When requested from outside (via server)
 const refreshClipboardFromMain = () => {
   clipboardText = clipboard.readText()
   return clipboardText
+}
+
+const createTray = () => {
+  tray = new Tray(path.join(__dirname, 'images', 'tray.png'))
+  
+  const contextMenu = Menu.buildFromTemplate([
+    {
+      label: 'Pull Remote',
+      click: async () => await pullRemoteText()
+    },
+    {
+      label: 'Refresh',
+      click: () => readTextFromClipboard()
+    },
+    {
+      label: 'Clear',
+      click: () => clearClipboard()
+    },
+    { type: 'separator' },
+    {
+      label: 'Show Window',
+      click: () => showWindow()
+    },
+    { type: 'separator' },
+    {
+      label: 'Quit',
+      click: () => {
+        if (configuration.enableClipboardServer) {
+          clipboardServer.close()
+        }
+        app.quit()
+      }
+    }
+  ])
+  
+  tray.setContextMenu(contextMenu)
+  tray.setToolTip('Clip Agent - Clipboard Sync Tool')
 }
 
 nativeTheme.themeSource = 'system'
@@ -108,20 +182,20 @@ app.whenReady().then(() => {
   });
 
   createWindow()
+  createTray()
 
   if (configuration.enableClipboardServer) {
     clipboardServer.start()
   }
 
   app.on('activate', () => {
-    // TODO: tray mode
+    // Show window when dock icon is clicked on macOS
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow()
+    }
   })
 })
 
 app.on('window-all-closed', () => {
-  // TODO: tray mode
-  if (configuration.enableClipboardServer) {
-    clipboardServer.close()
-  }
-  app.quit()
+    mainWindow = null
 })
