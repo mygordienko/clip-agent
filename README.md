@@ -7,8 +7,8 @@ Configuration file (`config.json`) is stored in `userData` directory.
 
 ## Build
 
-To run only specific makers
+To run only Debian build
 
 ```bash
-npm run make -- --targets @electron-forge/maker-deb
+npm run make-deb
 ```

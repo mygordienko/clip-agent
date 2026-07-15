@@ -1,5 +1,6 @@
 {
   "name": "clip-agent",
+  "productName": "clip-agent",
   "version": "0.0.1",
   "description": "Handy tool to share and alter clipboard data",
   "keywords": [
@@ -15,20 +16,22 @@
     "type": "git",
     "url": "git+https://github.com/mygordienko/clip-agent.git"
   },
-  "license": "MIT",
-  "author": "Mikhail Gordienko",
-  "type": "commonjs",
-  "main": "main.js",
-  "directories": {
-    "doc": "docs"
-  },
+  "main": ".webpack/main",
+  "private": true,
   "scripts": {
     "start": "electron-forge start",
     "start-ubuntu": "electron-forge start -- --no-sandbox --ozone-platform=x11",
-    "test": "echo \"Error: no test specified\" && exit 1",
     "package": "electron-forge package",
-    "make": "electron-forge make"
+    "make": "electron-forge make",
+    "make-deb": "electron-forge make --targets=deb",
+    "publish": "electron-forge publish",
+    "lint": "eslint --ext .ts,.tsx ."
   },
+  "author": {
+    "name": "Mikhail Gordienko",
+    "email": "mygordienko@gmail.com"
+  },
+  "license": "MIT",
   "devDependencies": {
     "@electron-forge/cli": "^7.11.2",
     "@electron-forge/maker-deb": "^7.11.2",
@@ -37,11 +40,24 @@
     "@electron-forge/maker-zip": "^7.11.2",
     "@electron-forge/plugin-auto-unpack-natives": "^7.11.2",
     "@electron-forge/plugin-fuses": "^7.11.2",
+    "@electron-forge/plugin-webpack": "^7.11.2",
     "@electron/fuses": "^1.8.0",
-    "electron": "^43.1.0"
+    "@types/node": "^26.1.1",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
+    "@vercel/webpack-asset-relocator-loader": "^1.7.3",
+    "copy-webpack-plugin": "^14.0.0",
+    "css-loader": "^6.11.0",
+    "electron": "43.1.0",
+    "eslint": "^8.57.1",
+    "eslint-plugin-import": "^2.32.0",
+    "fork-ts-checker-webpack-plugin": "^7.3.0",
+    "node-loader": "^2.1.0",
+    "style-loader": "^3.3.4",
+    "ts-loader": "^9.6.2",
+    "typescript": "~4.5.4"
   },
   "dependencies": {
-    "electron-squirrel-startup": "^1.0.1",
-    "express": "^5.2.1"
+    "electron-squirrel-startup": "^1.0.1"
   }
 }

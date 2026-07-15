@@ -142,3 +142,7 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Electron Forge build
+.webpack/
+out/
