@@ -1,4 +1,5 @@
 import { MakerDeb } from '@electron-forge/maker-deb';
+import { MakerSquirrel } from '@electron-forge/maker-squirrel';
 import { AutoUnpackNativesPlugin } from '@electron-forge/plugin-auto-unpack-natives';
 import { FusesPlugin } from '@electron-forge/plugin-fuses';
 import { WebpackPlugin } from '@electron-forge/plugin-webpack';
@@ -21,9 +22,9 @@ const config: ForgeConfig = {
   },
   rebuildConfig: {},
   makers: [
-    // new MakerSquirrel({
+    new MakerSquirrel({
       
-    // }),
+    }),
     new MakerDeb({
       options: {
         icon: path.join(__dirname, 'images', 'icon.png')
